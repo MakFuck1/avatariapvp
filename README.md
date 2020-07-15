@@ -32,6 +32,7 @@ Avataria PVP, kendi avataria sunucunuzu kurmanızı sağlar.
 - Baş Moderatörlük verme (M) = set uid:ID:role 3
 - Moderatörlük verme (M) = set uid:ID:role 2
 - Uyarı Yetkisi verme (M) = set uid:ID:role 1
+- Normal Oyuncu (P) = set uid:ID:role 0
 
 # İmaj - Konfor - Seviye - İsim Değiştirme Komutları
 - İmaj Verme: set uid:ID:crt {miktar}
