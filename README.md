@@ -26,6 +26,14 @@ Avataria PVP, kendi avataria sunucunuzu kurmanızı sağlar.
 - sudo adduser xrdp ssl-cert  
 - sudo systemctl restart xrdp
 
+# Panele Erişim
+- Putty'i açın.
+- Giriş yapın.
+- cd "oyun dosyalarının bulunduğu klasör" (örn: cd ava)
+- redis-server yazın.
+- redis-cli yazın.
+- Aşağıdaki komutları yazabilirsiniz.
+
 # Oyunda Yetki Verme
 - Gizli Adminlik verme (R) = set uid:ID:role 5
 - Adminlik verme (A) = set uid:ID:role 4
