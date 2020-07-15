@@ -26,4 +26,26 @@ Avataria PVP, kendi avataria sunucunuzu kurmanızı sağlar.
 - sudo adduser xrdp ssl-cert  
 - sudo systemctl restart xrdp
 
+# Oyunda Yetki Verme
+- Gizli Adminlik verme (R) = set uid:ID:role 5
+- Adminlik verme (A) = set uid:ID:role 4
+- Baş Moderatörlük verme (M) = set uid:ID:role 3
+- Moderatörlük verme (M) = set uid:ID:role 2
+- Uyarı Yetkisi verme (M) = set uid:ID:role 1
+
+# İmaj - Konfor - Seviye - İsim Değiştirme Komutları
+- İmaj Verme: set uid:ID:crt {miktar}
+- Konfor verme: set uid:ID:hrt {miktar}
+- Level verme (exp): set uid:ID:exp {exp miktar}
+- İsim değiştirme: lset uid:ID:appearance 0 "Koyulacak İsim"
+
+# Oyun İçi Ayarlar
+- Oyuncu banlama: !ban ID 
+- Oyuncu susturma (muteleme): !mute ID süre (dk)
+- Ban Kaldırma: !unban ID
+- Oyuncu Hesabı Sıfırlama: !reset ID
+- Oyuncu mute kaldırma: !mute ID 0 (dk)
+
+
+
 
