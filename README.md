@@ -54,7 +54,13 @@ Avataria PVP, kendi avataria sunucunuzu kurmanızı sağlar.
 - Ban Kaldırma: !unban ID
 - Oyuncu Hesabı Sıfırlama: !reset ID
 - Oyuncu mute kaldırma: !mute ID 0 (dk)
-
+- Oyuncu Hesap Sıfırlama: !reset ID
+ 
+ # Üyeleri Sıfırlama
+ - Putty açın.
+ - cd {oyun dosyalarının olduğu klasörün adı} (örn: cd ava)
+ - redis-server yazın.
+ - redis-cli FLUSHDB yazın.
 
 
 
