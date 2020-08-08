@@ -2,6 +2,7 @@ import logging
 from modules.base_module import Module
 from client import Client
 import common
+import redis
 
 
 class Location(Module):
@@ -51,13 +52,27 @@ def gen_plr(client, server):
         uid = client.uid
     else:
         uid = client
+    vredis = redis.Redis(decode_responses=True)
+    bdc = vredis.get(f"uid:{uid}:bdc")
+    tcl = vredis.get(f"uid:{uid}:tcl")
+    bilgi = vredis.get(f"uid:{uid}:rpt")
+   
+    
+
+    
+    if bilgi == None:
+        bilgi = 0
+    else: 
+       bilgi = int(vredis.get(f"uid:{uid}:rpt"))
+    
     apprnc = server.get_appearance(uid)
     if not apprnc:
         return None
     user_data = server.get_user_data(uid)
     clths = server.get_clothes(uid, type_=2)
     plr = {"uid": uid, "apprnc": apprnc, "clths": clths,
-           "mbm": {"ac": None, "sk": "blackMobileSkin"},
+           "mbm": {"ac": None, "sk": "blueMobileSkin"},
+           "chtdcm": {"bdc": bdc, "tcl": tcl, "spks": None},
            "usrinf": {"rl": user_data["role"]}}
     if isinstance(client, Client):
         plr["locinfo"] = {"st": client.state, "s": "127.0.0.1",
@@ -66,13 +81,13 @@ def gen_plr(client, server):
                           "shlc": True, "pl": "", "l": client.room}
     plr["ci"] = {"exp": user_data["exp"], "crt": user_data["crt"],
                  "hrt": user_data["hrt"], "fexp": 0, "gdc": 0, "lgt": 0,
-                 "vip": True, "vexp": 1965298000, "vsexp": 1965298000,
+                 "vip": True, "vexp": 1375057836, "vsexp": 1375057836,
                  "vsact": True, "vret": 0, "vfgc": 0, "ceid": 0, "cmid": 0,
                  "dr": True, "spp": 0, "tts": None, "eml": None, "ys": 0,
                  "ysct": 0, "fak": None, "shcr": True, "gtrfrd": 0,
                  "strfrd": 0, "rtrtm": 0, "kyktid": None, "actrt": 0,
                  "compid": 0, "actrp": 0, "actrd": 0, "shousd": False,
-                 "rpt": 0, "as": None, "lvt": user_data["lvt"],
+                 "rpt": bilgi, "as": None, "lvt": user_data["lvt"],
                  "lrnt": 0, "lwts": 0, "skid": None, "skrt": 0, "bcld": 0,
                  "trid": user_data["trid"], "trcd": 0, "sbid": None,
                  "sbrt": 0, "plcmt": {}, "pamns": {"amn": []}, "crst": 0}
