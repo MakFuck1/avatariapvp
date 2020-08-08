@@ -1,5 +1,9 @@
-# Avataria  PVP
+# Avataria  PVP - V2
 Avataria PVP, kendi avataria sunucunuzu kurmanızı sağlar.
+
+# Güncellemeler 08.08.2020 
+- Chat Dekor Özelliği eklendi.
+- Hatalar giderildi.
 
 # VDS - VPS Üzerine Kurulum
 - apt-get update
