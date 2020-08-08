@@ -10,11 +10,11 @@ from client import Client
 from inventory import Inventory
 from parser import Parser
 
-modules = ["client_error", "house", "outside", "user_rating", "mail", "avatar",
+modules = ["client_error", "house", "outside", "user_rating",  "mail", "avatar",
            "location_game", "relations", "social_request", "user_rating",
            "competition", "furniture", "billing", "component", "support",
            "passport", "player", "statistics", "shop", "mobile", "confirm",
-           "craft", "profession", "inventory", "event"]
+           "craft", "profession", "inventory", "event", "chatdecor"]
 
 
 def get_git_revision_short_hash():
@@ -48,7 +48,7 @@ class Server():
 
     def listen(self):
         self.sock.listen(5)
-        logging.info("Avataria PVP Başlatıldı - Hoşgeldin Admin")
+        logging.info("Server is ready to accept connections")
         thread = threading.Thread(target=self._background)
         thread.daemon = True
         thread.start()
@@ -71,7 +71,7 @@ class Server():
         elif data["type"] == 34:
             prefix = data["msg"][1].split(".")[0]
             if prefix not in self.modules:
-                logging.warning(f"Komut {data['msg'][1]} bulunamadı")
+                logging.warning(f"Command {data['msg'][1]} not found")
                 return
             self.modules[prefix].on_message(data["msg"], client)
 
@@ -83,7 +83,7 @@ class Server():
         banned = self.redis.get(f"uid:{uid}:banned")
         if banned:
             ban_time = int(self.redis.get(f"uid:{uid}:ban_time"))
-            client.send([10, "Kullanıcı banlandı",
+            client.send([10, "User is banned",
                          {"duration": 999999, "banTime": ban_time,
                           "notes": "Опа бан", "reviewerId": banned,
                           "reasonId": 0, "unbanType": "none", "leftTime": 0,
@@ -113,7 +113,7 @@ class Server():
         pipe.get(f"uid:{uid}:slvr").get(f"uid:{uid}:enrg")
         pipe.get(f"uid:{uid}:gld").get(f"uid:{uid}:exp").get(f"uid:{uid}:emd")
         pipe.get(f"uid:{uid}:lvt").get(f"uid:{uid}:trid").get(f"uid:{uid}:crt")
-        pipe.get(f"uid:{uid}:hrt").get(f"uid:{uid}:role")
+        pipe.get(f"uid:{uid}:hrt").get(f"uid:{uid}:role").get(f"uid:{uid}:tcl").get(f"uid:{uid}:bdc")
         result = pipe.execute()
         if not result[0]:
             return None
@@ -132,7 +132,7 @@ class Server():
         return {"uid": uid, "slvr": int(result[0]), "enrg": int(result[1]),
                 "gld": int(result[2]), "exp": int(result[3]),
                 "emd": int(result[4]), "lvt": int(result[5]), "crt": crt,
-                "hrt": hrt, "trid": result[6], "role": role}
+                "hrt": hrt, "trid": result[6], "role": role, "vip": result[10]}
 
     def get_appearance(self, uid):
         apprnc = self.redis.lrange(f"uid:{uid}:appearance", 0, -1)
@@ -203,7 +203,7 @@ class Server():
 
     def _background(self):
         while True:
-            logging.info(f"Çevrimiçi oyuncu: {len(self.online)}")
+            logging.info(f"Players online: {len(self.online)}")
             for uid in self.inv.copy():
                 inv = self.inv[uid]
                 if inv.expire and time.time() - inv.expire > 0:
