@@ -22,9 +22,9 @@ class Component(Module):
             if client.uid in self.mute:
                 time_left = self.mute[client.uid]-time.time()
                 if time_left > 0:
-                    client.send(["cp.ms.rsm", {"txt": "Hala mute var "
+                    client.send(["cp.ms.rsm", {"txt": "Oyuncunun hala  "
                                                       f"{int(time_left)} "
-                                                      "saniye"}])
+                                                      "dakika mutesi var"}])
                     return
                 else:
                     del self.mute[client.uid]
@@ -59,20 +59,20 @@ class Component(Module):
 
     def ban_user(self, uid, client):
         user_data = self.server.get_user_data(client.uid)
-        if not user_data["role"] == 3:
-            return self.no_permission(client)
+        if user_data["role"] < self.privileges["AVATAR_BAN"]:
+            return
         uid_user_data = self.server.get_user_data(uid)
-        if uid_user_data["role"] == 3:
+        if uid_user_data["role"] > 2:
             return
         redis = self.server.redis
         banned = redis.get(f"uid{uid}:banned")
         if banned:
-            client.send(["cp.ms.rsm", {"txt": f"Sayın moderatör, {uid} id numaralı oyuncu zaten cezalı."
-                                              f" "}])
+            client.send(["cp.ms.rsm", {"txt": f"{uid} ID'li oyuncu zaten banlandı"
+                                              f"{banned} ID li yetkili tarafından banlandı"}])
             return
         redis.set(f"uid:{uid}:banned", client.uid)
         ban_time = int(time.time()*1000)
-        redis.set(f"uid:{uid}:!_time", ban_time)
+        redis.set(f"uid:{uid}:ban_time", ban_time)
         for tmp in self.server.online.copy():
             if tmp.uid != uid:
                 continue
@@ -84,70 +84,21 @@ class Component(Module):
                        "moderatorId": client.uid}], type_=2)
             tmp.connection.shutdown(2)
             break
-        client.send(["cp.ms.rsm", {"txt": f"Sayın moderatör, {uid} id numaralı kullanıcı oyundan uzaklaştırıldı."}])
+        client.send(["cp.ms.rsm", {"txt": f"{uid} ID'li oyuncu oyundan banlandı "}])
 
     def unban_user(self, uid, client):
         user_data = self.server.get_user_data(client.uid)
-        if not user_data["role"] == 3:
-            return self.no_permission(client)
-        uid_user_data = self.server.get_user_data(uid)
-        if uid_user_data["role"] == 3:
+        if user_data["role"] < self.privileges["AVATAR_BAN"]:
             return
         redis = self.server.redis
         banned = redis.get(f"uid:{uid}:banned")
         if not banned:
-            client.send(["cp.ms.rsm", {"txt": f"{uid} için yasak yok."}])
+            client.send(["cp.ms.rsm", {"txt": f"{uid} ID li oyuncunun yasağı yok"}])
             return
         redis.delete(f"uid:{uid}:banned")
         redis.delete(f"uid:{uid}:ban_time")
-        client.send(["cp.ms.rsm", {"txt": f"Sayın moderatör, {uid} id numaralı kullanıcının banı kaldırıldı. "
-                                          f" "}])
-
-    def banla_user(self, uid, client):
-        user_data = self.server.get_user_data(client.uid)
-        if not user_data["role"] == 4:
-            return self.no_permission(client)
-        uid_user_data = self.server.get_user_data(uid)
-        if uid_user_data["role"] == 4:
-            return
-        redis = self.server.redis
-        banned = redis.get(f"uid{uid}:banned")
-        if banned:
-            client.send(["cp.ms.rsm", {"txt": f"Sayın admin, {uid} id numaralı oyuncu zaten cezalı."
-                                              f" "}])
-            return
-        redis.set(f"uid:{uid}:banned", client.uid)
-        ban_time = int(time.time()*1000)
-        redis.set(f"uid:{uid}:!_time", ban_time)
-        for tmp in self.server.online.copy():
-            if tmp.uid != uid:
-                continue
-            tmp.send([10, "User is banned",
-                      {"duration": 999999, "banTime": ban_time,
-                       "notes": "", "reviewerId": client.uid, "reasonId": 0,
-                       "unbanType": "none", "leftTime": 0, "id": None,
-                       "reviewState": 1, "userId": uid,
-                       "moderatorId": client.uid}], type_=2)
-            tmp.connection.shutdown(2)
-            break
-        client.send(["cp.ms.rsm", {"txt": f"Sayın admin, {uid} id numaralı kullanıcı oyundan uzaklaştırıldı."}])
-
-    def banac_user(self, uid, client):
-        user_data = self.server.get_user_data(client.uid)
-        if not user_data["role"] == 4:
-            return self.no_permission(client)
-        uid_user_data = self.server.get_user_data(uid)
-        if uid_user_data["role"] == 4:
-            return
-        redis = self.server.redis
-        banned = redis.get(f"uid:{uid}:banned")
-        if not banned:
-            client.send(["cp.ms.rsm", {"txt": f"{uid} için yasak yok."}])
-            return
-        redis.delete(f"uid:{uid}:banned")
-        redis.delete(f"uid:{uid}:ban_time")
-        client.send(["cp.ms.rsm", {"txt": f"Sayın admin, {uid} id numaralı kullanıcının banı kaldırıldı. "
-                                          f"{banned}"}])
+        client.send(["cp.ms.rsm", {"txt": f"{uid} adlı kullanıcının yasağı kaldırıldı "
+                                          f"{banned} tarafından yapıldı"}])
 
     def message(self, msg, client):
         subcommand = msg[1].split(".")[2]
@@ -174,31 +125,19 @@ class Component(Module):
             return self.send_system_message(msg, client)
         elif command == "mute":
             return self.mute_player(msg, client)
-        elif command == "muted":
-            return self.muted_player(msg, client)
-        elif command == "sembol":
-            return self.sembol_player(msg, client)
-        elif command == "sustur":
-            return self.sustur_player(msg, client)
         elif command == "ban":
             uid = msg.split()[1]
             return self.ban_user(uid, client)
         elif command == "unban":
             uid = msg.split()[1]
             return self.unban_user(uid, client)
-        elif command == "banla":
-            uid = msg.split()[1]
-            return self.banla_user(uid, client)
-        elif command == "banac":
-            uid = msg.split()[1]
-            return self.banac_user(uid, client)
         elif command == "reset":
             uid = msg.split()[1]
             return self.reset_user(uid, client)
 
     def send_system_message(self, msg, client):
         user_data = self.server.get_user_data(client.uid)
-        if not user_data["role"] == 4:
+        if user_data["role"] < self.privileges["SEND_SYSTEM_MESSAGE"]:
             return self.no_permission(client)
         message = msg.split("!ssm ")[1]
         for tmp in self.server.online.copy():
@@ -206,13 +145,13 @@ class Component(Module):
 
     def mute_player(self, msg, client):
         user_data = self.server.get_user_data(client.uid)
-        if not user_data["role"] == 2:
+        if user_data["role"] < self.privileges["CHAT_BAN"]:
             return self.no_permission(client)
         uid = msg.split()[1]
         minutes = int(msg.split()[2])
         apprnc = self.server.get_appearance(uid)
         if not apprnc:
-            client.send(["cp.ms.rsm", {"txt": "Sayın moderatör, böyle bir oyuncu bulunmuyor."}])
+            client.send(["cp.ms.rsm", {"txt": "Oyuncu bulunamadı"}])
             return
         self.mute[uid] = time.time()+minutes*60
         for tmp in self.server.online.copy():
@@ -225,64 +164,16 @@ class Component(Module):
                                             "mbd": minutes,
                                             "categoryId": 14}}])
             break
-        client.send(["cp.ms.rsm", {"txt": f"Sayın moderatör, {apprnc['n']} isimli oyuncu "
-                                          f"başarıyla {minutes} dakika boyunca susturuldu."}])
-
-    def muted_player(self, msg, client):
-        user_data = self.server.get_user_data(client.uid)
-        if not user_data["role"] == 3:
-            return self.no_permission(client)
-        uid = msg.split()[1]
-        minutes = int(msg.split()[2])
-        apprnc = self.server.get_appearance(uid)
-        if not apprnc:
-            client.send(["cp.ms.rsm", {"txt": "Sayın moderatör, böyle bir oyuncu bulunmuyor."}])
-            return
-        self.mute[uid] = time.time()+minutes*60
-        for tmp in self.server.online.copy():
-            if tmp.uid != uid:
-                continue
-            tmp.send(["cp.m.bccu", {"bcu": {"notes": "", "reviewerId": "0",
-                                            "mid": "0", "id": None,
-                                            "reviewState": 1, "userId": uid,
-                                            "mbt": int(time.time()*1000),
-                                            "mbd": minutes,
-                                            "categoryId": 14}}])
-            break
-        client.send(["cp.ms.rsm", {"txt": f"Sayın moderatör, {apprnc['n']} isimli oyuncu "
-                                          f"başarıyla {minutes} dakika boyunca susturuldu."}])
-
-    def sustur_player(self, msg, client):
-        user_data = self.server.get_user_data(client.uid)
-        if not user_data["role"] == 4:
-            return self.no_permission(client)
-        uid = msg.split()[1]
-        minutes = int(msg.split()[2])
-        apprnc = self.server.get_appearance(uid)
-        if not apprnc:
-            client.send(["cp.ms.rsm", {"txt": "Sayın admin, böyle bir oyuncu bulunmuyor."}])
-            return
-        self.mute[uid] = time.time()+minutes*60
-        for tmp in self.server.online.copy():
-            if tmp.uid != uid:
-                continue
-            tmp.send(["cp.m.bccu", {"bcu": {"notes": "", "reviewerId": "0",
-                                            "mid": "0", "id": None,
-                                            "reviewState": 1, "userId": uid,
-                                            "mbt": int(time.time()*1000),
-                                            "mbd": minutes,
-                                            "categoryId": 14}}])
-            break
-        client.send(["cp.ms.rsm", {"txt": f"Sayın admin, {apprnc['n']} isimli oyuncu "
-                                          f"başarıyla {minutes} dakika boyunca susturuldu."}])
+        client.send(["cp.ms.rsm", {"txt": f"{apprnc['n']} isimli oyuncu susturuldu "
+                                          f"{minutes} dakika susturuldu"}])
 
     def reset_user(self, uid, client):
         user_data = self.server.get_user_data(client.uid)
-        if not user_data["role"] == 4:
+        if user_data["role"] < 5:
             return self.no_permission(client)
         apprnc = self.server.get_appearance(uid)
         if not apprnc:
-            client.send(["cp.ms.rsm", {"txt": "Bu hesap zaten sıfırlanmış."}])
+            client.send(["cp.ms.rsm", {"txt": "Hesap zaten sıfırlandı"}])
             return
         for tmp in self.server.online.copy():
             if tmp.uid != uid:
@@ -290,8 +181,8 @@ class Component(Module):
             tmp.connection.shutdown(2)
             break
         utils.bot_common.reset_account(self.server.redis, uid)
-        client.send(["cp.ms.rsm", {"txt": f"{uid} id numaralı oyuncunun hesabı sıfırlandı."}])
+        client.send(["cp.ms.rsm", {"txt": f"{uid} ID li hesap sıfırlandı"}])
 
     def no_permission(self, client):
-        client.send(["cp.ms.rsm", {"txt": "Sayın kullanıcı bu işlemi yapabilmek için yeterli yetkiye sahip değilsiniz"
-                                          "."}])
+        client.send(["cp.ms.rsm", {"txt": "Yeterli haklara sahip değilsin"
+                                          "Bu işlemi yap"}])
