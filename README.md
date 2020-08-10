@@ -1,4 +1,4 @@
-# Avataria  PVP - V2
+# Avataria  PVP TR - V2
 Avataria PVP, kendi avataria sunucunuzu kurmanızı sağlar.
 
 # Güncellemeler 08.08.2020 
